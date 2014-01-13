@@ -41,6 +41,7 @@ def postQuery(char):
     
     data = response.read()
     data = data.replace("<head>", "<head><base href='http://www.cns11643.gov.tw/AIDB/' />")
+    data = data.replace("530","100%")
     soup = BeautifulSoup(data)
     #soup.head.append("<base href='http://www.cns11643.gov.tw/AIDB/' />")
     soup.h3.clear()
@@ -58,7 +59,7 @@ if __name__ == '__main__':
     arg = unicode(sys.argv[1],'utf-8')
     if len(arg) > 0:
         f = open('output.html', 'w+')
-        first_item = False
+        count = 0 
         for character in arg:
             hexcode = convertUtf8ToHex(character)
             #print hexcode
@@ -67,13 +68,22 @@ if __name__ == '__main__':
             formatCode = formatCNS(cns)
             #print formatCode
             header, data = postQuery(formatCode)
-            if first_item == False:
+            if count == 0:
                 f.write(repr(header))
-                f.write("<body>")
+                f.write("<body><table><tr><td>")
                 f.write(repr(data))
-                first_item = True
+                f.write("</td>")
+                count += 1 
+            elif count % 2 != 0:
+                f.write("<td>")
+                f.write(repr(data))
+                f.write("</td></tr>")
+                count += 1
             else:
+                f.write("<td>")
                 f.write(repr(data))
-        f.write("</body>")
+                f.write("</td>")
+                count += 1
+        f.write("</table></body>")
         f.close()
         os.system('open output.html')
