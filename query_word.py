@@ -3,6 +3,9 @@
 
 import sys,os
 import httplib, urllib
+import sqlite3 as lite
+
+con = lite.connect('map.db')
 
 def convertUtf8ToHex(char):
     u = unicode(char,'utf-8')
@@ -10,9 +13,16 @@ def convertUtf8ToHex(char):
 
 def convertUtf8HexToCNS(char):
     
-    command = "awk '$2 ~ /^%s/ {print $1}' *" % (char)
-    output = os.popen(command).read()
-    return output[:-1]
+    #command = "awk '$2 ~ /^%s/ {print $1}' *" % (char)
+    #output = os.popen(command).read()
+    with con:
+        cur = con.cursor() 
+        cur.execute("SELECT CNS FROM Mapping WHERE UTF8='%s'" % (char))
+        con.commit()
+
+        row = cur.fetchone()
+        if len(row) > 0:
+            return row[0]
 
 def formatCNS(char):
     if char[0] == '0':
@@ -26,7 +36,7 @@ def postQuery(char):
     conn = httplib.HTTPConnection("www.cns11643.gov.tw")
     conn.request("POST", "/AIDB/fm_results.do", params, headers)
     response = conn.getresponse()
-    print response.status, response.reason
+    #print response.status, response.reason
     
     data = response.read()
     data = data.replace("<head>", "<head><base href='http://www.cns11643.gov.tw/AIDB/' />")
@@ -47,3 +57,4 @@ if __name__ == '__main__':
     f = open('output.html', 'w+')
     f.write(data)
     f.close()
+    os.system('open output.html')
