@@ -5,11 +5,12 @@ import sys,os
 import httplib, urllib
 import sqlite3 as lite
 
+from bs4 import BeautifulSoup
+
 con = lite.connect('map.db')
 
 def convertUtf8ToHex(char):
-    u = unicode(char,'utf-8')
-    return repr(u)[4:-1].upper()
+    return repr(char)[4:-1].upper()
 
 def convertUtf8HexToCNS(char):
     
@@ -40,21 +41,39 @@ def postQuery(char):
     
     data = response.read()
     data = data.replace("<head>", "<head><base href='http://www.cns11643.gov.tw/AIDB/' />")
+    soup = BeautifulSoup(data)
+    #soup.head.append("<base href='http://www.cns11643.gov.tw/AIDB/' />")
+    soup.h3.clear()
+    soup.p.clear()
+    div = soup.find("div", class_="maincolumn_content")
+    div.table.td['colspan'] = 10
+
     conn.close()
-    return data
+    return soup.head, div 
 
 if __name__ == '__main__':
     if len(sys.argv) < 1:
        exit(0) 
 
-    hexcode = convertUtf8ToHex(sys.argv[1])
-    #print hexcode
-    cns = convertUtf8HexToCNS(hexcode)
-    #print cns
-    formatCode = formatCNS(cns)
-    #print formatCode
-    data = postQuery(formatCode)
-    f = open('output.html', 'w+')
-    f.write(data)
-    f.close()
-    os.system('open output.html')
+    arg = unicode(sys.argv[1],'utf-8')
+    if len(arg) > 0:
+        f = open('output.html', 'w+')
+        first_item = False
+        for character in arg:
+            hexcode = convertUtf8ToHex(character)
+            #print hexcode
+            cns = convertUtf8HexToCNS(hexcode)
+            #print cns
+            formatCode = formatCNS(cns)
+            #print formatCode
+            header, data = postQuery(formatCode)
+            if first_item == False:
+                f.write(repr(header))
+                f.write("<body>")
+                f.write(repr(data))
+                first_item = True
+            else:
+                f.write(repr(data))
+        f.write("</body>")
+        f.close()
+        os.system('open output.html')
