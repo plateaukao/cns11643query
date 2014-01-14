@@ -31,8 +31,8 @@ def formatCNS(char):
     else:
         return char[0:2] + char[3:]
 
-def postQuery(char):
-    params = urllib.urlencode({'cns': char, 'font': '', 'author': '', 'cnscode':'1455f'})
+def postQuery(char,page_num='0'):
+    params = urllib.urlencode({'cns': char, 'font': '', 'author': '', 'cnscode':'1455f', 'pageNo':page_num})
     headers = {"Content-type": "application/x-www-form-urlencoded","Accept": "text/plain"}
     conn = httplib.HTTPConnection("www.cns11643.gov.tw")
     conn.request("POST", "/AIDB/fm_results.do", params, headers)
@@ -46,11 +46,15 @@ def postQuery(char):
     #soup.head.append("<base href='http://www.cns11643.gov.tw/AIDB/' />")
     soup.h3.clear()
     soup.p.clear()
+
+    tds_link = soup.find_all("td", width='100')
+    tds_desc = soup.find_all("td", bgcolor="#F2EAC4")
+
     div = soup.find("div", class_="maincolumn_content")
     div.table.td['colspan'] = 10
 
     conn.close()
-    return soup.head, div 
+    return soup.head, tds_link, tds_desc
 
 if __name__ == '__main__':
     if len(sys.argv) < 1:
@@ -67,23 +71,16 @@ if __name__ == '__main__':
             #print cns
             formatCode = formatCNS(cns)
             #print formatCode
-            header, data = postQuery(formatCode)
+            header, tds_link, tds_desc = postQuery(formatCode)
             if count == 0:
                 f.write(repr(header))
-                f.write("<body><table><tr><td>")
-                f.write(repr(data))
-                f.write("</td>")
-                count += 1 
-            elif count % 2 != 0:
-                f.write("<td>")
-                f.write(repr(data))
-                f.write("</td></tr>")
-                count += 1
-            else:
-                f.write("<td>")
-                f.write(repr(data))
-                f.write("</td>")
-                count += 1
-        f.write("</table></body>")
+                f.write("<body><table>")
+            f.write("<tr>")
+            for i in tds_link:
+                f.write(repr(i))
+            f.write("<tr>")
+            for i in tds_desc:
+                f.write(repr(i))
+        f.write("</body>")
         f.close()
         os.system('open output.html')
