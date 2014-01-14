@@ -3,27 +3,19 @@
 
 import sys,os
 import httplib, urllib
-import sqlite3 as lite
 
 from BeautifulSoup import BeautifulSoup
 
-con = lite.connect('map.db')
+from Utf8ToCNSMap import code_map
 
 def convertUtf8ToHex(char):
     return repr(char)[4:-1].upper()
 
 def convertUtf8HexToCNS(char):
-    
-    #command = "awk '$2 ~ /^%s/ {print $1}' *" % (char)
-    #output = os.popen(command).read()
-    with con:
-        cur = con.cursor() 
-        cur.execute("SELECT CNS FROM Mapping WHERE UTF8='%s'" % (char))
-        con.commit()
-
-        row = cur.fetchone()
-        if len(row) > 0:
-            return row[0]
+    if code_map.has_key(char):
+        return code_map[char]
+    else:
+        return None
 
 def formatCNS(char):
     if char[0] == '0':
@@ -55,31 +47,37 @@ def postQuery(char,page_num='0'):
     conn.close()
     return soup.head, tds_link, tds_desc
 
+def generateHTML(arg):
+    count = 0 
+    html = ""
+    for character in arg:
+        hexcode = convertUtf8ToHex(character)
+        #print hexcode
+        cns = convertUtf8HexToCNS(hexcode)
+        if cns == None:
+            continue
+        #print cns
+        formatCode = formatCNS(cns)
+        #print formatCode
+        header, tds_link, tds_desc = postQuery(formatCode)
+        if count == 0:
+            html += repr(header)
+            html += "<body><table>"
+        html += "<tr>"
+        for i in tds_link:
+            html += repr(i)
+        html += "<tr>"
+        for i in tds_desc:
+            html += repr(i)
+    html += "</body>"
+    return html
+
 if __name__ == '__main__':
     if len(sys.argv) < 1:
        exit(0) 
 
     arg = unicode(sys.argv[1],'utf-8')
     if len(arg) > 0:
-        f = open('output.html', 'w+')
-        count = 0 
-        for character in arg:
-            hexcode = convertUtf8ToHex(character)
-            #print hexcode
-            cns = convertUtf8HexToCNS(hexcode)
-            #print cns
-            formatCode = formatCNS(cns)
-            #print formatCode
-            header, tds_link, tds_desc = postQuery(formatCode)
-            if count == 0:
-                f.write(repr(header))
-                f.write("<body><table>")
-            f.write("<tr>")
-            for i in tds_link:
-                f.write(repr(i))
-            f.write("<tr>")
-            for i in tds_desc:
-                f.write(repr(i))
-        f.write("</body>")
-        f.close()
-        os.system('open output.html')
+        html = generateHTML(arg)
+        open("output.html","w+").write(html).close()
+        os.system("open output.html")
