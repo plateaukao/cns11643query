@@ -5,7 +5,7 @@ import sys,os
 import httplib, urllib
 import sqlite3 as lite
 
-from bs4 import BeautifulSoup
+from BeautifulSoup import BeautifulSoup
 
 con = lite.connect('map.db')
 
@@ -44,14 +44,13 @@ def postQuery(char,page_num='0'):
     data = data.replace("530","100%")
     soup = BeautifulSoup(data)
     #soup.head.append("<base href='http://www.cns11643.gov.tw/AIDB/' />")
-    soup.h3.clear()
-    soup.p.clear()
+    #soup.h3.clear()
+    #soup.p.clear()
 
-    tds_link = soup.find_all("td", width='100')
-    tds_desc = soup.find_all("td", bgcolor="#F2EAC4")
+    tds_link = soup.findAll("td", width='100')
+    tds_desc = soup.findAll("td", bgcolor="#F2EAC4")
 
     div = soup.find("div", class_="maincolumn_content")
-    div.table.td['colspan'] = 10
 
     conn.close()
     return soup.head, tds_link, tds_desc
