@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import logging
 import cgi
 import webapp2
 import query_word
@@ -37,6 +38,7 @@ class MainPage(webapp2.RequestHandler):
 class QueryHandler(webapp2.RequestHandler):
     def post(self):
         arg = cgi.escape(self.request.get('content'))
+        logging.debug("request:%s",arg)
         html = query_word.generateHTML(arg)
         self.response.write(arg)
         self.response.write(html)
