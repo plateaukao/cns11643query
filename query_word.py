@@ -95,7 +95,7 @@ def generateHTML(arg):
         # character official page links
         html += "<table ><tr><td bgcolor='#DBDBDB' colspan='42'>%s 共有%d個字; %d頁  " % (character.encode('utf8'), int(total_chr), int(total_page))
         for i in range(int(total_page)):
-            html += "<a href='javascript:query(%d,%s);'>第%d頁</a> | " % (i, cnsvalue, i+1)
+            html += "<a href='javascript:query(%d,\"%s\");'>第%d頁</a> | " % (i, cnsvalue, i+1)
         # images and description
         image_line = ""
         desc_line = ""
