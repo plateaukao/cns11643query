@@ -22,11 +22,22 @@ import query_word
 
 MAIN_PAGE_HTML = """\
 <html>
+  <head>
+  <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+  <script src="/js/main.js" type="text/javascript" ></script>
+  </head>
   <body>
-    <form action="/query" method="post">
-      <div><textarea name="content" rows="3" cols="60"></textarea></div>
-      <div><input type="submit" value="Search"></div>
-    </form>
+  <table width="100%">
+  <tr align="center"> <td>書法 + </td> </tr>
+  <tr align="center"><td>
+    <div id="searchContainer">
+        <form action="/query" method="post">
+            <input id="field" name="content" type="text" />
+            <input id="submit" name="submit" type="submit" value="Search" />
+        </form>
+    </div>
+    </td> </tr>
+    </table>
   </body>
 </html>
 """

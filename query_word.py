@@ -5,6 +5,7 @@ import sys,os
 import httplib, urllib
 
 from BeautifulSoup import BeautifulSoup
+from BeautifulSoup import Tag
 
 from Utf8ToCNSMap import code_map
 
@@ -32,10 +33,15 @@ def postQuery(char,page_num='0'):
     #print response.status, response.reason
     
     data = response.read()
-    data = data.replace("<head>", "<head><base href='http://www.cns11643.gov.tw/AIDB/' />")
     data = data.replace("530","100%")
     soup = BeautifulSoup(data)
-    #soup.head.append("<base href='http://www.cns11643.gov.tw/AIDB/' />")
+
+    baseTag = Tag(soup, "base")
+    baseTag['href'] = "http://www.cns11643.gov.tw/AIDB/"
+    soup.head.insert(0,baseTag)
+
+    soup.head.title.contents[0].replaceWith(unicode("CalliPlus 搜尋結果","utf-8"))
+
     #soup.h3.clear()
     #soup.p.clear()
 
