@@ -39,8 +39,13 @@ def postQuery(char,page_num='0'):
     baseTag = Tag(soup, "base")
     baseTag['href'] = "http://www.cns11643.gov.tw/AIDB/"
     soup.head.insert(0,baseTag)
-
     soup.head.title.contents[0].replaceWith(unicode("CalliPlus 搜尋結果","utf-8"))
+
+    #remove useless link and script
+    links = soup.findAll('link')
+    [link.extract() for link in links]
+    scripts = soup.findAll('script')
+    [script.extract() for script in scripts]
 
     #soup.h3.clear()
     #soup.p.clear()
@@ -77,7 +82,7 @@ def generateHTML(arg):
             html += "<html>"
             html += repr(header)
             html += """<body>
-            <form name="queryForm" id="queryForm" method="post" action="fm_results.do">
+            <form name="queryForm" id="queryForm" method="post" action="fm_results.do" target="_blank">
             <input name="cns" type="hidden" value="0"><input name="font" type="hidden" value=""><input name="author" type="hidden" value=""><input name="pageNo" type="hidden" value="0">
             </form>
            <script language="javascript" type="text/JavaScript">
@@ -86,21 +91,30 @@ def generateHTML(arg):
                  document.queryForm.cns.value=cv+"";
                  document.queryForm.submit();
              }
-            </script>
-            <table>"""
+            </script>"""
         # character official page links
-        html += "<tr><td colspan='42'>%s 共有%d個字; %d頁  " % (character.encode('utf8'), int(total_chr), int(total_page))
+        html += "<table ><tr><td bgcolor='#DBDBDB' colspan='42'>%s 共有%d個字; %d頁  " % (character.encode('utf8'), int(total_chr), int(total_page))
         for i in range(int(total_page)):
             html += "<a href='javascript:query(%d,%s);'>第%d頁</a> | " % (i, cnsvalue, i+1)
-        # images
-        html += "<tr>"
-        for i in tds_link:
-            html += repr(i)
-        # descriptions
-        html += "<tr>"
-        for i in tds_desc:
-            html += repr(i)
-        html += "<tr><td>"
+        # images and description
+        image_line = ""
+        desc_line = ""
+        for i in range(len(tds_link)):
+            if i % 10 == 0:
+                if i > 0:
+                    html += image_line + desc_line
+                    image_line = ""
+                    desc_line = ""
+                image_line += "<tr>"
+                desc_line += "<tr>"
+            if -1 != repr(tds_desc[i]).find("&nbsp;"):
+                continue
+            image_line += repr(tds_link[i])
+            desc_line += repr(tds_desc[i])
+        if image_line != "":
+            html += image_line + desc_line
+
+        html += "<br>"
         count += 1
     html += "</body></html>"
     return html
