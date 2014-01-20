@@ -51,7 +51,7 @@ class QueryHandler(webapp2.RequestHandler):
         arg = cgi.escape(self.request.get('content'))
         logging.debug("request:%s",arg)
         html = query_word.generateHTML(arg)
-        self.response.write(arg)
+        #self.response.write(arg)
         self.response.write(html)
 
 app = webapp2.WSGIApplication([

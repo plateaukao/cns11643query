@@ -45,13 +45,18 @@ def postQuery(char,page_num='0'):
     #soup.h3.clear()
     #soup.p.clear()
 
+    totals = soup.findAll(attrs={"class":"con"})
+    total_chr = totals[0].contents[0]
+    total_page = totals[1].contents[0]
+    cnsvalue = soup.findAll(attrs={"name":"cns"})[0]['value']
+
     tds_link = soup.findAll("td", width='100')
     tds_desc = soup.findAll("td", bgcolor="#F2EAC4")
 
     div = soup.find("div", class_="maincolumn_content")
 
     conn.close()
-    return soup.head, tds_link, tds_desc
+    return soup.head, tds_link, tds_desc, total_chr, total_page, cnsvalue.encode('ascii')
 
 def generateHTML(arg):
     count = 0 
@@ -65,17 +70,39 @@ def generateHTML(arg):
         #print cns
         formatCode = formatCNS(cns)
         #print formatCode
-        header, tds_link, tds_desc = postQuery(formatCode)
+        header, tds_link, tds_desc,total_chr, total_page,cnsvalue = postQuery(formatCode)
+        print total_chr, total_page
+        # add header part
         if count == 0:
+            html += "<html>"
             html += repr(header)
-            html += "<body><table>"
+            html += """<body>
+            <form name="queryForm" id="queryForm" method="post" action="fm_results.do">
+            <input name="cns" type="hidden" value="0"><input name="font" type="hidden" value=""><input name="author" type="hidden" value=""><input name="pageNo" type="hidden" value="0">
+            </form>
+           <script language="javascript" type="text/JavaScript">
+             function query(page, cv) {
+                 document.queryForm.pageNo.value = page+"";
+                 document.queryForm.cns.value=cv+"";
+                 document.queryForm.submit();
+             }
+            </script>
+            <table>"""
+        # character official page links
+        html += "<tr><td colspan='42'>%s 共有%d個字; %d頁  " % (character.encode('utf8'), int(total_chr), int(total_page))
+        for i in range(int(total_page)):
+            html += "<a href='javascript:query(%d,%s);'>第%d頁</a> | " % (i, cnsvalue, i+1)
+        # images
         html += "<tr>"
         for i in tds_link:
             html += repr(i)
+        # descriptions
         html += "<tr>"
         for i in tds_desc:
             html += repr(i)
-    html += "</body>"
+        html += "<tr><td>"
+        count += 1
+    html += "</body></html>"
     return html
 
 if __name__ == '__main__':
