@@ -27,5 +27,5 @@ CNS11643中文標準交換碼全字庫
 
 在 data.gov.tw 上線之後 研考會公布了
 
-    http://data.gov.tw/opendata/Details?sno=341000000A-00006
+    http://data.gov.tw/node/5961
 
